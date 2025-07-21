@@ -50,10 +50,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signup = async (email, password, name) => {
+  const signup = async (email, password, name_1) => {
     try {
       const res = await axios.post(`${BACKEND_URL}/auth/signup`, {
-        fullName: name,
+        fullName: name_1,
         username: email,
         password,
       });

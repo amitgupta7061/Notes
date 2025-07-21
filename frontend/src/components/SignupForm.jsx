@@ -34,9 +34,9 @@ const SignupForm = ({ onSwitchToLogin }) => {
     }
 
     try {
-      const result = signup(email, password, name);
+      const result = await signup(email, password, name);
       if (!result.success) {
-        setError('Failed to create account');
+        setError(result.error || 'Failed to create account');
       }
     } catch (err) {
       setError('Signup failed. Please try again.');
