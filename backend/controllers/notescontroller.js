@@ -5,11 +5,6 @@ export const getNotes = async (req, res) => {
   res.json(notes);
 };
 
-export const getPublicNotes = async (req, res) => {
-  const notes = await Note.find({ isPublic: true }).sort("-updatedAt");
-  res.json(notes);
-};
-
 export const createNote = async (req, res) => {
   const { title, content, isPublic } = req.body;
   const note = await Note.create({

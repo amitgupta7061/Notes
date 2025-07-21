@@ -1,61 +1,64 @@
+// src/components/Dashboard.jsx
 import { useState, useEffect } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
-import NoteEditor from './NodeEditor';
-import { loadNotes, saveNotes, generateId } from '../utils/storage';
+import NoteEditor from './NoteEditor';
+import {
+  getNotes,
+  createNote as createNoteApi,
+  updateNote as updateNoteApi,
+  deleteNote as deleteNoteApi,
+} from '../context/NotesApi';
+import { useAuth } from '../context/AuthContext'; // assumes you have AuthContext
 
 const Dashboard = () => {
+  const { token } = useAuth(); // must return token from context
   const [notes, setNotes] = useState([]);
   const [selectedNote, setSelectedNote] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const savedNotes = loadNotes();
-    setNotes(savedNotes);
-    if (savedNotes.length > 0) {
-      setSelectedNote(savedNotes[0]);
-    }
-  }, []);
+    if (!token) return;
+    const fetchNotes = async () => {
+      const fetchedNotes = await getNotes(token);
+      setNotes(fetchedNotes);
+      if (fetchedNotes.length > 0) {
+        setSelectedNote(fetchedNotes[0]);
+      }
+    };
+    fetchNotes();
+  }, [token]);
 
-  useEffect(() => {
-    saveNotes(notes);
-  }, [notes]);
-
-  const createNote = () => {
-    const newNote = {
-      id: generateId(),
+  const createNote = async () => {
+    const newNote = await createNoteApi(token, {
       title: 'Untitled Note',
       content: '',
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
-    
+      isPublic: false,
+    });
     setNotes(prevNotes => [newNote, ...prevNotes]);
     setSelectedNote(newNote);
     setIsMobileSidebarOpen(false);
   };
 
-  const updateNote = (id, updates) => {
+  const updateNote = async (id, updates) => {
+    const updated = await updateNoteApi(token, id, updates);
     setNotes(prevNotes =>
       prevNotes.map(note =>
-        note.id === id
-          ? { ...note, ...updates, updatedAt: Date.now() }
-          : note
+        note._id === id ? { ...note, ...updated } : note
       )
     );
-    
-    if (selectedNote?.id === id) {
-      setSelectedNote(prev => ({ ...prev, ...updates, updatedAt: Date.now() }));
+    if (selectedNote?._id === id) {
+      setSelectedNote(prev => ({ ...prev, ...updated }));
     }
   };
 
-  const deleteNote = (id) => {
-    setNotes(prevNotes => prevNotes.filter(note => note.id !== id));
-    
-    if (selectedNote?.id === id) {
-      const remainingNotes = notes.filter(note => note.id !== id);
-      setSelectedNote(remainingNotes.length > 0 ? remainingNotes[0] : null);
+  const deleteNote = async (id) => {
+    await deleteNoteApi(token, id);
+    const filtered = notes.filter(note => note._id !== id);
+    setNotes(filtered);
+    if (selectedNote?._id === id) {
+      setSelectedNote(filtered.length > 0 ? filtered[0] : null);
     }
   };
 
@@ -67,7 +70,7 @@ const Dashboard = () => {
   return (
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       <Header />
-      
+
       <div className="flex-1 flex overflow-hidden">
         <Sidebar
           notes={notes}
@@ -80,7 +83,7 @@ const Dashboard = () => {
           isMobileOpen={isMobileSidebarOpen}
           onMobileClose={() => setIsMobileSidebarOpen(false)}
         />
-        
+
         <div className="flex-1 flex flex-col">
           {/* Mobile menu button */}
           <div className="lg:hidden border-b border-gray-200 dark:border-gray-700 p-4">
@@ -94,7 +97,7 @@ const Dashboard = () => {
               <span>Notes</span>
             </button>
           </div>
-          
+
           <NoteEditor
             note={selectedNote}
             onUpdateNote={updateNote}
