@@ -11,6 +11,8 @@ export const useAuth = () => {
   return context;
 };
 
+const BACKEND_URL = "http://localhost:5000/api";
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
@@ -28,7 +30,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', {
+      const res = await axios.post(`${BACKEND_URL}/auth/login`, {
         username,
         password,
       });
@@ -50,7 +52,7 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (email, password, name) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/signup', {
+      const res = await axios.post(`${BACKEND_URL}/auth/signup`, {
         fullName: name,
         username: email,
         password,
