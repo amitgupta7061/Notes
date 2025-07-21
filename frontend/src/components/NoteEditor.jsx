@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
-
-let debounceTimer;
+import { useState, useEffect, useRef } from 'react';
 
 const NoteEditor = ({ note, onUpdateNote }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isPublic, setIsPublic] = useState(false);
+  const debounceTimer = useRef(null);
 
+  // Set initial state when note changes
   useEffect(() => {
     if (note) {
       setTitle(note.title || '');
@@ -15,29 +15,32 @@ const NoteEditor = ({ note, onUpdateNote }) => {
     }
   }, [note]);
 
+  // Debounce update function
   const debouncedUpdate = (updates) => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-      onUpdateNote(note._id, updates);
-    }, 500);
+    clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      if (note && note._id) {
+        onUpdateNote(note._id, updates);
+      }
+    }, 3000); // delay in ms
   };
 
   const handleTitleChange = (e) => {
     const newTitle = e.target.value;
     setTitle(newTitle);
-    if (note) debouncedUpdate({ title: newTitle, content, isPublic });
+    debouncedUpdate({ title: newTitle, content, isPublic });
   };
 
   const handleContentChange = (e) => {
     const newContent = e.target.value;
     setContent(newContent);
-    if (note) debouncedUpdate({ title, content: newContent, isPublic });
+    debouncedUpdate({ title, content: newContent, isPublic });
   };
 
   const handleToggle = () => {
     const newStatus = !isPublic;
     setIsPublic(newStatus);
-    if (note) debouncedUpdate({ title, content, isPublic: newStatus });
+    debouncedUpdate({ title, content, isPublic: newStatus });
   };
 
   if (!note) {
