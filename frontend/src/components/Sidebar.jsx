@@ -20,8 +20,8 @@ const Sidebar = ({
       note.content.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
-      if (sortBy === 'modified') return b.updatedAt - a.updatedAt;
-      if (sortBy === 'created') return b.createdAt - a.createdAt;
+      if (sortBy === 'modified') return new Date(b.updatedAt) - new Date(a.updatedAt);
+      if (sortBy === 'created') return new Date(b.createdAt) - new Date(a.createdAt);
       if (sortBy === 'title') return a.title.localeCompare(b.title);
       return 0;
     });
@@ -32,7 +32,6 @@ const Sidebar = ({
 
   return (
     <>
-      {/* Mobile overlay */}
       {isMobileOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
@@ -40,7 +39,6 @@ const Sidebar = ({
         />
       )}
 
-      {/* Sidebar */}
       <div className={`
         fixed lg:relative z-50 lg:z-0 inset-y-0 left-0 transform lg:transform-none
         w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
@@ -48,7 +46,6 @@ const Sidebar = ({
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="flex flex-col h-full">
-          {/* Sidebar Header */}
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Notes</h2>
@@ -72,7 +69,6 @@ const Sidebar = ({
               New Note
             </button>
 
-            {/* Search */}
             <div className="relative mb-4">
               <input
                 type="text"
@@ -81,13 +77,11 @@ const Sidebar = ({
                 onChange={(e) => onSearchChange(e.target.value)}
                 className="input-field pl-10"
               />
-              <svg className="w-4 h-4 mt-1 absolute left-3 top-3 text-gray-400" fill="currentColor" viewBox="0 0 
-              20 20">
+              <svg className="w-4 h-4 mt-1 absolute left-3 top-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd"/>
               </svg>
             </div>
 
-            {/* Sort dropdown */}
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -99,7 +93,6 @@ const Sidebar = ({
             </select>
           </div>
 
-          {/* Notes List */}
           <div className="flex-1 overflow-y-auto">
             {filteredNotes.length === 0 ? (
               <div className="p-4 text-center text-gray-500 dark:text-gray-400">
@@ -109,10 +102,10 @@ const Sidebar = ({
               <div className="divide-y divide-gray-200 dark:divide-gray-700">
                 {filteredNotes.map(note => (
                   <div
-                    key={note.id}
+                    key={note._id}
                     onClick={() => onSelectNote(note)}
                     className={`p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
-                      selectedNote?.id === note.id ? 'bg-primary-50 dark:bg-primary-900/20 border-r-2 border-primary-500' : ''
+                      selectedNote?._id === note._id ? 'bg-primary-50 dark:bg-primary-900/20 border-r-2 border-primary-500' : ''
                     }`}
                   >
                     <div className="flex items-start justify-between">
@@ -120,6 +113,11 @@ const Sidebar = ({
                         <h3 className="font-medium text-gray-900 dark:text-white truncate">
                           {note.title || 'Untitled'}
                         </h3>
+                        {note.isPublic ? (
+                          <span title="Public" className="text-green-500">🌐</span>
+                        ) : (
+                          <span title="Private" className="text-gray-400">🔒</span>
+                        )}
                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
                           {truncateText(note.content.replace(/[#*`]/g, ''))}
                         </p>
@@ -130,7 +128,7 @@ const Sidebar = ({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          onDeleteNote(note.id);
+                          onDeleteNote(note._id);
                         }}
                         className="ml-2 p-1 text-gray-400 hover:text-red-500 transition-colors"
                       >
