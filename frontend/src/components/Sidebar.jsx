@@ -14,10 +14,13 @@ const Sidebar = ({
 }) => {
   const [sortBy, setSortBy] = useState('modified');
 
-  const filteredNotes = notes
+  // ✅ Ensure notes is always an array
+  const safeNotes = Array.isArray(notes) ? notes : [];
+
+  const filteredNotes = safeNotes
     .filter(note => 
-      note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      note.content.toLowerCase().includes(searchTerm.toLowerCase())
+      note.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      note.content?.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
       if (sortBy === 'modified') return new Date(b.updatedAt) - new Date(a.updatedAt);
@@ -27,6 +30,7 @@ const Sidebar = ({
     });
 
   const truncateText = (text, maxLength = 100) => {
+    if (!text) return '';
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
 
@@ -119,7 +123,7 @@ const Sidebar = ({
                           <span title="Private" className="text-gray-400">🔒</span>
                         )}
                         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                          {truncateText(note.content.replace(/[#*`]/g, ''))}
+                          {truncateText(note.content?.replace(/[#*`]/g, ''))}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
                           {formatDate(note.updatedAt)}
